@@ -2,6 +2,7 @@
 mod cli;
 mod command_guesser;
 mod test_runner;
+mod text_diff;
 
 use std::time::Duration;
 
@@ -42,9 +43,7 @@ fn list() {
 }
 
 fn show(problem: StaticProblem) {
-    println!("Title: {}\n", problem.title);
-    println!("Description:");
-    println!("{}", problem.description);
+    termimad::print_text(&(problem.title.to_string() + "\n" + problem.description));
 }
 
 fn test(problem: StaticProblem, spec: SolutionSpec, timeout: Duration) -> anyhow::Result<()> {

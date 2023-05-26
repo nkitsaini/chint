@@ -9,6 +9,8 @@ use std::{
 };
 use wait_timeout::ChildExt;
 
+use crate::text_diff;
+
 enum ResultStatus {
     Success,
     IncorrectExitCode { exit_code: i32 },
@@ -125,11 +127,17 @@ pub fn test_problem(problem: &Problem, command: &str, timeout: Duration) -> anyh
                 return Ok(false);
             }
             ResultStatus::IncorrectOutput => {
-                eprintln!("Incorrect Output: ");
-                eprintln!("---------------- Expected: ");
-                println!("{}", String::from_utf8_lossy(test.output));
-                eprintln!("---------------- Got: ");
-                println!("{}", result.stdout);
+                println!("Incorrect Output: \nGreen - expected output | Red - Recieved output ");
+                println!("==========================");
+                text_diff::print_diff(
+                    &result.stdout.trim_end(),
+                    &String::from_utf8_lossy(test.output).trim_end(),
+                )?;
+                println!("==========================");
+                // eprintln!("---------------- Expected: ");
+                // println!("{}", String::from_utf8_lossy(test.output));
+                // eprintln!("---------------- Got: ");
+                // println!("{}", result.stdout);
                 if result.stderr.len() != 0 {
                     eprintln!("---------------- Stderr: ");
                     println!("{}", result.stderr);

@@ -1,14 +1,28 @@
-Odd Even Check
-Given a positive integer print "true" (without quotes) if integer is even otherwise false.
-Examples:
-*** 
--- Input
-1
--- Output
-false
+# Odd Even Check
 
-*** 
--- Input
+---
+## Description:
+Given a positive integer print "true" (without quotes) if integer is even otherwise false.
+
+---
+## Example 1:
+**Input**
+```
+1
+```
+**Output**
+```
+false
+```
+
+---
+ 
+## Example 2:
+**Input**
+```
 2
--- Output
+```
+**Output**
+```
 true
+```
