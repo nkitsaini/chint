@@ -1,3 +1,4 @@
+//! Modified from https://github.com/Michael-F-Bryan/include_dir/blob/master/macros/src/lib.rs
 //! Implementation details of the `include_dir`.
 //!
 //! You probably don't want to use this crate directly.
@@ -128,7 +129,6 @@ fn expand_dir(root: &Path, path: &Path) -> proc_macro2::TokenStream {
         let _description_path = dir.join("description.md");
         let _description_path = dir.join("description.md");
     }
-
 
     let _path = normalize_path(root, path);
 
