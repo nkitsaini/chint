@@ -140,13 +140,12 @@ fn expand_dir(root: &Path, path: &Path) -> proc_macro2::TokenStream {
                     let problem_name = x.strip_suffix(".in").unwrap();
                     assert!(
                         currentTestInput.is_none() && currentTestName.is_none(),
-                        "Possibly missing output file for {:?}",
-                        currentTestName
+                        "Possibly missing output file for {currentTestName:?}"
                     );
                     currentTestName = Some(problem_name.to_string());
                     currentTestInput = Some(read_file(&child));
                 }
-                _ => panic!("Unexpected file {} in {:?}", name, child),
+                _ => panic!("Unexpected file {name} in {child:?}"),
             }
         }
         let problem_desc = problem_description.expect("description.md missing");

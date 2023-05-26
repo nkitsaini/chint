@@ -62,8 +62,8 @@ impl Problem {
                     if input_path_name.ends_with(".in") {
                         let test_name = input_path_name.strip_suffix(".in").unwrap();
                         let output_file =
-                            get_file(problem_dir, format!("{}.out", test_name)).context(
-                                format!("Missing matching output for input: {}", input_path_name),
+                            get_file(problem_dir, format!("{test_name}.out")).context(
+                                format!("Missing matching output for input: {input_path_name}"),
                             )?;
                         problem.tests.push(Test {
                             test_name: test_name.to_string(),

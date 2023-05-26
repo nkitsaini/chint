@@ -5,7 +5,7 @@ use std::process::exit;
 use clap::{Args, Parser, Subcommand};
 use macro_types::Problem;
 
-const problems: &'static [Problem] = macros::include_dir!("guru/problems");
+const problems: &[Problem] = macros::include_dir!("guru/problems");
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
 struct Cli {
@@ -76,7 +76,7 @@ fn main() {
             println!("{}", problem.description);
         }
         ProblemSubCommand::Test(TestCommand { command, timeout }) => {
-            println!("Running test with {}, timeout: {}", command, timeout);
+            println!("Running test with {command}, timeout: {timeout}");
         }
     }
 }
