@@ -34,6 +34,9 @@ fn run_test(test: &Test, command: &str, timeout: Duration) -> anyhow::Result<Res
     child.stdin.take().unwrap().write_all(test.input)?;
     let start = std::time::Instant::now();
     let r = child.wait_timeout(timeout)?;
+    if r.is_none() {
+        child.kill()?;
+    }
     let end = std::time::Instant::now();
     let duration = end - start;
 
@@ -43,6 +46,7 @@ fn run_test(test: &Test, command: &str, timeout: Duration) -> anyhow::Result<Res
     // stdout
     let mut reader = BufReader::new(&mut stdout);
     let mut output = vec![];
+
     reader.read_to_end(&mut output)?;
 
     // stderr

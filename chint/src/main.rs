@@ -1,10 +1,18 @@
-mod tester;
-use std::{process::exit, time::Duration};
+#[warn(clippy::unimplemented)]
+mod cli;
+mod command_guesser;
+mod test_runner;
 
+use std::time::Duration;
+
+use anyhow::{bail, Context};
 use clap::{Args, Parser, Subcommand};
+use cli::{Command, SolutionSpec};
 use macro_types::Problem;
 
-const PROBLEMS: &[Problem] = macros::include_dir!("chint/problems");
+pub const PROBLEMS: &[Problem] = macros::include_dir!("chint/problems");
+type StaticProblem = &'static Problem<'static>;
+
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
 struct Cli {
@@ -42,67 +50,58 @@ enum ProblemSubCommand {
     Test(TestCommand),
 }
 
-fn main() {
-    let args = Cli::parse();
-    let args = match args.command {
-        Commands::List => {
-            for (i, problem) in PROBLEMS.iter().enumerate() {
-                println!(
-                    "{}: {} (tests: {})",
-                    i + 1,
-                    problem.title,
-                    problem.tests.len()
-                );
-            }
-            return;
-        }
-        Commands::Problem(x) => x,
-    };
-    if args.problem_id == 0 {
-        eprintln!("Invalid problem number: 0. Problems start with no. 1");
-        exit(1);
-    }
-    let problem = match PROBLEMS.get(args.problem_id - 1) {
-        Some(x) => x,
-        None => {
-            eprintln!(
-                "Invalid problem number: {}. There are only {} problems.",
-                args.problem_id,
-                PROBLEMS.len()
-            );
-            exit(1);
+fn main() -> anyhow::Result<()> {
+    let command = cli::get_args();
+
+    match command {
+        Command::List => list(),
+        Command::Show { problem } => show(problem),
+        Command::Test {
+            problem,
+            spec,
+            timeout,
+        } => {
+            test(problem, spec, timeout)?;
         }
     };
-    match args.command {
-        ProblemSubCommand::Show => {
-            println!("Title: {}\n", problem.title);
-            println!("Description:");
-            println!("{}", problem.description);
-        }
-        ProblemSubCommand::Test(TestCommand { command, timeout }) => {
-            let result =
-                tester::test_problem(problem, &command, Duration::from_secs(timeout as u64));
-            let success = match result {
-                Ok(x) => x,
-                Err(e) => {
-                    eprintln!("Got error while running the tests: {:?}", e);
-                    exit(1);
-                }
-            };
-            if success {
-                println!("Hooray!!")
-            } else {
-                println!("Try just once more!!")
-            }
-        }
+
+    Ok(())
+}
+
+fn list() {
+    for (i, problem) in PROBLEMS.iter().enumerate() {
+        println!(
+            "{}: {} (tests: {})",
+            i + 1,
+            problem.title,
+            problem.tests.len()
+        );
     }
 }
 
-// #[cfg(test)]
-// mod tests {
-//     use super::*;
-//     #[test]
-//     fn build_test_valid_problem_structure() {
-//         assert!(problem::Problem::from_dir(PROBLEM_DIR).unwrap().len() > 0);
-//     }
-// }
+fn show(problem: StaticProblem) {
+    println!("Title: {}\n", problem.title);
+    println!("Description:");
+    println!("{}", problem.description);
+}
+
+fn test(problem: StaticProblem, spec: SolutionSpec, timeout: Duration) -> anyhow::Result<()> {
+    let command = match spec {
+        cli::SolutionSpec::File(f) => command_guesser::guess_command(&f)
+            .context("Unsupported file format, please provide full command using -c arg")?,
+        cli::SolutionSpec::Command(c) => c,
+    };
+    let result = test_runner::test_problem(problem, &command, timeout);
+    let success = match result {
+        Ok(x) => x,
+        Err(e) => {
+            bail!("Got error while running the tests: {:?}", e);
+        }
+    };
+    if success {
+        println!("Hooray!!");
+    } else {
+        println!("Try just once more!!");
+    }
+    Ok(())
+}
