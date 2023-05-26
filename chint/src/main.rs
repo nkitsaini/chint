@@ -36,7 +36,7 @@ fn list() {
         println!(
             "{}: {} (tests: {})",
             i + 1,
-            problem.title,
+            problem.title.strip_prefix('#').unwrap_or(problem.title),
             problem.tests.len()
         );
     }
