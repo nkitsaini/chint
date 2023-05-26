@@ -3,7 +3,7 @@
 //! You probably don't want to use this crate directly.
 #![cfg_attr(feature = "nightly", feature(track_path, proc_macro_tracked_env))]
 
-use core::num;
+
 use proc_macro::{TokenStream, TokenTree};
 use proc_macro2::Literal;
 use quote::quote;
@@ -166,8 +166,8 @@ fn expand_dir(root: &Path, path: &Path) -> proc_macro2::TokenStream {
             }
         });
 
-        let description_path = dir.join("description.md");
-        let description_path = dir.join("description.md");
+        let _description_path = dir.join("description.md");
+        let _description_path = dir.join("description.md");
         // if (dir)
     }
 
@@ -189,7 +189,7 @@ fn expand_dir(root: &Path, path: &Path) -> proc_macro2::TokenStream {
     //     }
     // }
 
-    let path = normalize_path(root, path);
+    let _path = normalize_path(root, path);
 
     quote! {
         &[ #(#problems),*]
