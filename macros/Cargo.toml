@@ -1,0 +1,16 @@
+[package]
+name = "macros"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[lib]
+proc-macro =true
+
+[features]
+nightly=[]
+
+[dependencies]
+macro_types = { version = "0.1.0", path = "../macro_types" }
+proc-macro2 = "1.0.58"
+quote = "1.0.27"
