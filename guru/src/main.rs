@@ -1,11 +1,9 @@
-mod problem;
-
 use std::process::exit;
 
 use clap::{Args, Parser, Subcommand};
 use macro_types::Problem;
 
-const problems: &[Problem] = macros::include_dir!("guru/problems");
+const PROBLEMS: &[Problem] = macros::include_dir!("guru/problems");
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
 struct Cli {
@@ -47,7 +45,7 @@ fn main() {
     let args = Cli::parse();
     let args = match args.command {
         Commands::List => {
-            for (i, problem) in problems.iter().enumerate() {
+            for (i, problem) in PROBLEMS.iter().enumerate() {
                 println!("{}: {}", i + 1, problem.title);
             }
             return;
@@ -58,13 +56,13 @@ fn main() {
         eprintln!("Invalid problem number: 0. Problems start with no. 1");
         exit(1);
     }
-    let problem = match problems.get(args.problem_id - 1) {
+    let problem = match PROBLEMS.get(args.problem_id - 1) {
         Some(x) => x,
         None => {
             eprintln!(
                 "Invalid problem number: {}. There are only {} problems.",
                 args.problem_id,
-                problems.len()
+                PROBLEMS.len()
             );
             exit(1);
         }

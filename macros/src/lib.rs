@@ -3,16 +3,13 @@
 //! You probably don't want to use this crate directly.
 #![cfg_attr(feature = "nightly", feature(track_path, proc_macro_tracked_env))]
 
-
 use proc_macro::{TokenStream, TokenTree};
-use proc_macro2::Literal;
 use quote::quote;
 use std::{
     collections::HashMap,
     error::Error,
     fmt::{self, Display, Formatter},
     path::{Path, PathBuf},
-    time::SystemTime,
 };
 
 /// Embed the contents of a directory in your crate.
@@ -42,41 +39,6 @@ fn unwrap_string_literal(lit: &proc_macro::Literal) -> String {
     repr
 }
 
-// fn read_problem(root: &Path) -> proc_macro2::TokenStream {
-//     let children = read_dir(root).unwrap_or_else(|e| {
-//         panic!(
-//             "Unable to read the entries in \"{}\": {}",
-//             root.display(),
-//             e
-//         )
-//     });
-
-//     let child_names = children.iter().map(|x| )
-//     let mut child_tokens = Vec::new();
-
-//     for child in children {
-//         if child.is_dir() {
-//             let tokens = expand_dir(root, &child);
-//             child_tokens.push(quote! {
-//                 include_dir::DirEntry::Dir(#tokens)
-//             });
-//         } else if child.is_file() {
-//             let tokens = expand_file(root, &child);
-//             child_tokens.push(quote! {
-//                 include_dir::DirEntry::File(#tokens)
-//             });
-//         } else {
-//             panic!("\"{}\" is neither a file nor a directory", child.display());
-//         }
-//     }
-
-//     let root = normalize_path(root, root);
-
-//     // include_dir::Dir::new(#root, &[ #(#child_tokens),* ])
-//     quote! {
-//         &[ #(#problems),*]
-//     }
-// }
 fn expand_dir(root: &Path, path: &Path) -> proc_macro2::TokenStream {
     let children = read_dir(path).unwrap_or_else(|e| {
         panic!(
@@ -108,8 +70,8 @@ fn expand_dir(root: &Path, path: &Path) -> proc_macro2::TokenStream {
         });
         let mut problem_description = None;
         let mut tests = vec![];
-        let mut currentTestName: Option<String> = None;
-        let mut currentTestInput: Option<Vec<u8>> = None;
+        let mut current_test_name: Option<String> = None;
+        let mut current_test_input: Option<Vec<u8>> = None;
         childs.sort_by(|a, b| a.file_name().unwrap().cmp(b.file_name().unwrap()));
         for child in childs {
             let name = child.file_name().unwrap().to_str().unwrap();
@@ -123,27 +85,29 @@ fn expand_dir(root: &Path, path: &Path) -> proc_macro2::TokenStream {
                     let problem_name = x.strip_suffix(".out").unwrap();
                     assert_eq!(
                         problem_name,
-                        &currentTestName.clone().expect("Out file without input file")
+                        &current_test_name
+                            .clone()
+                            .expect("Out file without input file")
                     );
-                    let name = currentTestName.expect("Outfile without input file");
-                    let input = currentTestInput.unwrap();
+                    let name = current_test_name.expect("Outfile without input file");
+                    let input = current_test_input.unwrap();
                     let output = read_file(&child);
                     tests.push(quote! {macro_types::Test {
                         test_name: #name,
                         input: &[#(#input), *],
                         output: &[#(#output), *],
                     }});
-                    currentTestName = None;
-                    currentTestInput = None;
+                    current_test_name = None;
+                    current_test_input = None;
                 }
                 x if x.ends_with(".in") => {
                     let problem_name = x.strip_suffix(".in").unwrap();
                     assert!(
-                        currentTestInput.is_none() && currentTestName.is_none(),
-                        "Possibly missing output file for {currentTestName:?}"
+                        current_test_input.is_none() && current_test_name.is_none(),
+                        "Possibly missing output file for {current_test_name:?}"
                     );
-                    currentTestName = Some(problem_name.to_string());
-                    currentTestInput = Some(read_file(&child));
+                    current_test_name = Some(problem_name.to_string());
+                    current_test_input = Some(read_file(&child));
                 }
                 _ => panic!("Unexpected file {name} in {child:?}"),
             }
@@ -193,54 +157,6 @@ fn expand_dir(root: &Path, path: &Path) -> proc_macro2::TokenStream {
     quote! {
         &[ #(#problems),*]
     }
-}
-
-fn expand_file(root: &Path, path: &Path) -> proc_macro2::TokenStream {
-    let abs = path
-        .canonicalize()
-        .unwrap_or_else(|e| panic!("failed to resolve \"{}\": {}", path.display(), e));
-    let literal = match abs.to_str() {
-        Some(abs) => quote!(include_bytes!(#abs)),
-        None => {
-            let contents = read_file(path);
-            let literal = Literal::byte_string(&contents);
-            quote!(#literal)
-        }
-    };
-
-    let normalized_path = normalize_path(root, path);
-
-    let tokens = quote! {
-        include_dir::File::new(#normalized_path, #literal)
-    };
-
-    match metadata(path) {
-        Some(metadata) => quote!(#tokens.with_metadata(#metadata)),
-        None => tokens,
-    }
-}
-
-fn metadata(path: &Path) -> Option<proc_macro2::TokenStream> {
-    fn to_unix(t: SystemTime) -> u64 {
-        t.duration_since(SystemTime::UNIX_EPOCH).unwrap().as_secs()
-    }
-
-    if !cfg!(feature = "metadata") {
-        return None;
-    }
-
-    let meta = path.metadata().ok()?;
-    let accessed = meta.accessed().map(to_unix).ok()?;
-    let created = meta.created().map(to_unix).ok()?;
-    let modified = meta.modified().map(to_unix).ok()?;
-
-    Some(quote! {
-        include_dir::Metadata::new(
-            std::time::Duration::from_secs(#accessed),
-            std::time::Duration::from_secs(#created),
-            std::time::Duration::from_secs(#modified),
-        )
-    })
 }
 
 /// Make sure that paths use the same separator regardless of whether the host
