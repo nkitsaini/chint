@@ -116,11 +116,7 @@ fn expand_dir(root: &Path, path: &Path) -> proc_macro2::TokenStream {
         let (title, description) = problem_desc
             .split_once('\n')
             .expect("Invalid format in description.md");
-        // macro_types::Problem {
-        //     title: #title,
-        //     description: description.to_string(),
-        //     tests: ,
-        // }
+
         problems.push(quote! {
             macro_types::Problem {
                 title: #title,
@@ -131,26 +127,8 @@ fn expand_dir(root: &Path, path: &Path) -> proc_macro2::TokenStream {
 
         let _description_path = dir.join("description.md");
         let _description_path = dir.join("description.md");
-        // if (dir)
     }
 
-    // let mut child_tokens = Vec::new();
-
-    // for child in children {
-    //     if child.is_dir() {
-    //         let tokens = expand_dir(root, &child);
-    //         child_tokens.push(quote! {
-    //             include_dir::DirEntry::Dir(#tokens)
-    //         });
-    //     } else if child.is_file() {
-    //         let tokens = expand_file(root, &child);
-    //         child_tokens.push(quote! {
-    //             include_dir::DirEntry::File(#tokens)
-    //         });
-    //     } else {
-    //         panic!("\"{}\" is neither a file nor a directory", child.display());
-    //     }
-    // }
 
     let _path = normalize_path(root, path);
 
