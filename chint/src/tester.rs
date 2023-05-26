@@ -1,10 +1,10 @@
 use anyhow::Context;
 use macro_types::{Problem, Test};
 use shlex::split;
-use std::io::{stderr, BufReader, Read};
+use std::io::{BufReader, Read};
 use std::time::Duration;
 use std::{
-    io::{BufWriter, Write},
+    io::Write,
     process::{Command, Stdio},
 };
 use wait_timeout::ChildExt;
