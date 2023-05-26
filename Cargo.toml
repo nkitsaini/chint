@@ -1,2 +1,2 @@
 [workspace]
-members=["macros", "guru", "macro_types"]
+members=["macros", "chint", "macro_types"]
