@@ -1,4 +1,5 @@
-use std::process::exit;
+mod tester;
+use std::{process::exit, time::Duration};
 
 use clap::{Args, Parser, Subcommand};
 use macro_types::Problem;
@@ -46,7 +47,12 @@ fn main() {
     let args = match args.command {
         Commands::List => {
             for (i, problem) in PROBLEMS.iter().enumerate() {
-                println!("{}: {}", i + 1, problem.title);
+                println!(
+                    "{}: {} (tests: {})",
+                    i + 1,
+                    problem.title,
+                    problem.tests.len()
+                );
             }
             return;
         }
@@ -74,7 +80,20 @@ fn main() {
             println!("{}", problem.description);
         }
         ProblemSubCommand::Test(TestCommand { command, timeout }) => {
-            println!("Running test with {command}, timeout: {timeout}");
+            let result =
+                tester::test_problem(problem, &command, Duration::from_secs(timeout as u64));
+            let success = match result {
+                Ok(x) => x,
+                Err(e) => {
+                    eprintln!("Got error while running the tests: {:?}", e);
+                    exit(1);
+                }
+            };
+            if success {
+                println!("Hooray!!")
+            } else {
+                println!("Try just once more!!")
+            }
         }
     }
 }
