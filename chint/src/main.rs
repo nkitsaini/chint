@@ -6,49 +6,11 @@ mod test_runner;
 use std::time::Duration;
 
 use anyhow::{bail, Context};
-use clap::{Args, Parser, Subcommand};
 use cli::{Command, SolutionSpec};
 use macro_types::Problem;
 
 pub const PROBLEMS: &[Problem] = macros::include_dir!("chint/problems");
 type StaticProblem = &'static Problem<'static>;
-
-#[derive(Parser)]
-#[command(author, version, about, long_about = None)]
-struct Cli {
-    /// The problem number
-    #[command(subcommand)]
-    command: Commands,
-}
-
-#[derive(Args)]
-struct TestCommand {
-    command: String,
-    #[arg(short, long, default_value_t = 1)]
-    timeout: usize,
-}
-
-#[derive(Subcommand)]
-enum Commands {
-    /// List all problems
-    List,
-    /// The problem number
-    Problem(ProblemCommand),
-}
-
-#[derive(Args)]
-struct ProblemCommand {
-    problem_id: usize,
-
-    #[command(subcommand)]
-    command: ProblemSubCommand,
-}
-
-#[derive(Subcommand)]
-enum ProblemSubCommand {
-    Show,
-    Test(TestCommand),
-}
 
 fn main() -> anyhow::Result<()> {
     let command = cli::get_args();
